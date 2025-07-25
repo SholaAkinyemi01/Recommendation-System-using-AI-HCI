@@ -9,9 +9,14 @@ Python 3.x
 Libraries: pandas, scikit-learn, surprise, flask
 You can install the required libraries using the requirements.txt file.
 clone the repository
-git clone https://github.com/your-username/Recommendation-System-AI-HCI.git
+git clone https://github.com/SholaAkinyemi01/Recommendation-System-using-AI-HCI.git
 
 Result:
 <img width="1234" height="226" alt="a" src="https://github.com/user-attachments/assets/3359ba7d-c66f-47e4-a2bf-168775a5918d" />
 
 <img width="1716" height="487" alt="b" src="https://github.com/user-attachments/assets/5fb4cb2a-7c65-441b-861f-d1c1ec6548d5" />
+
+<img width="1680" height="846" alt="4" src="https://github.com/user-attachments/assets/78fe7264-703d-46d1-9139-6ed79ead57e5" />
+
+<img width="1624" height="846" alt="5" src="https://github.com/user-attachments/assets/ea26654e-9f91-49d7-b40a-74f38d054226" />
+
