@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommender</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general aesthetics */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top to prevent jumping */
+            min-height: 100vh;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            border: 1px solid #e2e8f0; /* Light border */
+        }
+        .header {
+            color: #1a202c; /* Darker text for header */
+            margin-bottom: 2rem;
+            font-weight: 700; /* Bold header */
+        }
+        .section-title {
+            color: #2d3748; /* Slightly lighter text for section titles */
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Responsive grid */
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .movie-item {
+            background-color: #edf2f7; /* Light gray for movie items */
+            padding: 0.75rem;
+            border-radius: 0.75rem; /* Rounded corners for items */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #cbd5e0; /* Subtle border */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+            min-height: 100px; /* Ensure consistent height */
+        }
+        .movie-item:hover {
+            background-color: #e2e8f0; /* Darker on hover */
+            transform: translateY(-3px); /* Slight lift effect */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+        .movie-item.selected {
+            background-color: #4299e1; /* Blue for selected */
+            color: white;
+            border-color: #3182ce;
+            transform: scale(1.02); /* Slightly larger when selected */
+        }
+        .movie-item.selected .movie-genre {
+            color: #ebf8ff; /* Lighter genre text for selected */
+        }
+        .movie-title {
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: #2d3748;
+        }
+        .movie-item.selected .movie-title {
+            color: white;
+        }
+        .movie-genre {
+            font-size: 0.8rem;
+            color: #718096; /* Gray for genre */
+            margin-top: 0.25rem;
+        }
+        .recommend-button {
+            background-color: #38a169; /* Green button */
+            color: white;
+            padding: 0.8rem 1.8rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            border: none;
+            box-shadow: 0 4px 15px rgba(56, 161, 105, 0.3); /* Green shadow */
+            margin-top: 1.5rem;
+        }
+        .recommend-button:hover {
+            background-color: #2f855a; /* Darker green on hover */
+            transform: translateY(-2px);
+        }
+        .recommend-button:active {
+            transform: translateY(0);
+        }
+        .recommendations-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 1.5rem;
+            max-height: 300px; /* Max height for scrollable list */
+            overflow-y: auto; /* Scroll if too many recommendations */
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            background-color: #f7fafc; /* Lighter background for list */
+        }
+        .recommendations-list li {
+            background-color: #ffffff;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            text-align: left;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .recommendations-list li:last-child {
+            margin-bottom: 0;
+        }
+        .recommendation-title {
+            font-weight: 500;
+            color: #2d3748;
+        }
+        .recommendation-genre {
+            font-size: 0.8rem;
+            color: #718096;
+        }
+        .message-box {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-top: 1.5rem;
+            display: none; /* Hidden by default */
+        }
+        .message-box.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-4xl header">Movie Recommendation System</h1>
+        <p class="text-gray-600 mb-6">Select movies you like, and we'll recommend others!</p>
+
+        <div class="message-box" id="messageBox"></div>
+
+        <h2 class="text-2xl section-title">Available Movies</h2>
+        <div id="movieSelection" class="movie-grid">
+            <!-- Movies will be loaded here by JavaScript -->
+        </div>
+
+        <button id="recommendButton" class="recommend-button">Get Recommendations</button>
+
+        <h2 class="text-2xl section-title">Your Recommendations</h2>
+        <ul id="recommendationsList" class="recommendations-list">
+            <li class="text-gray-500">No recommendations yet. Select movies and click "Get Recommendations".</li>
+        </ul>
+    </div>
+
+    <script>
+        // Define the dataset of movies with their genres
+        // This is a simplified example. In a real system, this data would come from a database.
+        const movies = [
+            { id: 1, title: "The Matrix", genres: ["Sci-Fi", "Action"] },
+            { id: 2, title: "Inception", genres: ["Sci-Fi", "Action", "Thriller"] },
+            { id: 3, title: "Interstellar", genres: ["Sci-Fi", "Drama"] },
+            { id: 4, title: "Pulp Fiction", genres: ["Crime", "Drama"] },
+            { id: 5, title: "Forrest Gump", genres: ["Drama", "Romance"] },
+            { id: 6, title: "The Shawshank Redemption", genres: ["Drama"] },
+            { id: 7, title: "Toy Story", genres: ["Animation", "Family"] },
+            { id: 8, title: "Finding Nemo", genres: ["Animation", "Family"] },
+            { id: 9, title: "Spirited Away", genres: ["Animation", "Fantasy"] },
+            { id: 10, title: "The Dark Knight", genres: ["Action", "Crime"] },
+            { id: 11, title: "Gladiator", genres: ["Action", "Drama"] },
+            { id: 12, title: "Avatar", genres: ["Sci-Fi", "Action", "Fantasy"] },
+            { id: 13, title: "Lion King", genres: ["Animation", "Family", "Musical"] },
+            { id: 14, title: "Titanic", genres: ["Romance", "Drama"] },
+            { id: 15, title: "Blade Runner 2049", genres: ["Sci-Fi", "Thriller"] }
+        ];
+
+        let selectedMovieIds = new Set(); // Using a Set to store unique selected movie IDs
+
+        const movieSelectionDiv = document.getElementById('movieSelection');
+        const recommendButton = document.getElementById('recommendButton');
+        const recommendationsList = document.getElementById('recommendationsList');
+        const messageBox = document.getElementById('messageBox');
+
+        /**
+         * Displays a message in the message box.
+         * @param {string} message The message to display.
+         * @param {string} type The type of message (e.g., 'warning', 'info').
+         */
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.className = 'message-box show'; // Reset classes
+            if (type === 'warning') {
+                messageBox.classList.add('bg-orange-100', 'text-orange-800', 'border-orange-200');
+            } else { // Default info style
+                messageBox.classList.add('bg-blue-100', 'text-blue-800', 'border-blue-200');
+            }
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 5000); // Hide after 5 seconds
+        }
+
+        /**
+         * Renders all movies to the selection grid.
+         */
+        function renderMovies() {
+            movieSelectionDiv.innerHTML = ''; // Clear existing movies
+            movies.forEach(movie => {
+                const movieItem = document.createElement('div');
+                movieItem.classList.add('movie-item');
+                movieItem.dataset.movieId = movie.id; // Store movie ID in data attribute
+
+                // Add 'selected' class if the movie is already selected
+                if (selectedMovieIds.has(movie.id)) {
+                    movieItem.classList.add('selected');
+                }
+
+                movieItem.innerHTML = `
+                    <span class="movie-title">${movie.title}</span>
+                    <span class="movie-genre">${movie.genres.join(', ')}</span>
+                `;
+
+                movieItem.addEventListener('click', () => {
+                    toggleMovieSelection(movie.id, movieItem);
+                });
+                movieSelectionDiv.appendChild(movieItem);
+            });
+        }
+
+        /**
+         * Toggles the selection state of a movie.
+         * @param {number} movieId The ID of the movie to toggle.
+         * @param {HTMLElement} movieElement The DOM element representing the movie.
+         */
+        function toggleMovieSelection(movieId, movieElement) {
+            if (selectedMovieIds.has(movieId)) {
+                selectedMovieIds.delete(movieId);
+                movieElement.classList.remove('selected');
+            } else {
+                selectedMovieIds.add(movieId);
+                movieElement.classList.add('selected');
+            }
+        }
+
+        /**
+         * Calculates the similarity between two sets of genres using Jaccard index.
+         * @param {string[]} genres1 Array of genres for movie 1.
+         * @param {string[]} genres2 Array of genres for movie 2.
+         * @returns {number} The Jaccard similarity score (0 to 1).
+         */
+        function calculateJaccardSimilarity(genres1, genres2) {
+            const set1 = new Set(genres1);
+            const set2 = new Set(genres2);
+
+            const intersectionSize = new Set([...set1].filter(x => set2.has(x))).size;
+            const unionSize = new Set([...set1, ...set2]).size;
+
+            if (unionSize === 0) return 0; // Avoid division by zero
+            return intersectionSize / unionSize;
+        }
+
+        /**
+         * Generates movie recommendations based on selected movies.
+         * This is a content-based approach: it finds movies with similar genres.
+         */
+        function getRecommendations() {
+            if (selectedMovieIds.size === 0) {
+                showMessage("Please select at least one movie to get recommendations.", 'warning');
+                recommendationsList.innerHTML = '<li class="text-gray-500">No recommendations yet. Select movies and click "Get Recommendations".</li>';
+                return;
+            }
+
+            // Get the genres of the selected movies
+            let likedGenres = new Set();
+            const selectedMovies = movies.filter(movie => selectedMovieIds.has(movie.id));
+            selectedMovies.forEach(movie => {
+                movie.genres.forEach(genre => likedGenres.add(genre));
+            });
+            const likedGenresArray = Array.from(likedGenres);
+
+            // Calculate similarity for all unselected movies
+            const unselectedMovies = movies.filter(movie => !selectedMovieIds.has(movie.id));
+            const scoredRecommendations = [];
+
+            unselectedMovies.forEach(movie => {
+                const similarity = calculateJaccardSimilarity(likedGenresArray, movie.genres);
+                if (similarity > 0) { // Only recommend if there's some genre overlap
+                    scoredRecommendations.push({ movie: movie, similarity: similarity });
+                }
+            });
+
+            // Sort recommendations by similarity in descending order
+            scoredRecommendations.sort((a, b) => b.similarity - a.similarity);
+
+            // Display top N recommendations (e.g., top 5)
+            const topRecommendations = scoredRecommendations.slice(0, 5);
+
+            displayRecommendations(topRecommendations);
+        }
+
+        /**
+         * Displays the generated recommendations in the UI.
+         * @param {Array<Object>} recommendations An array of recommendation objects { movie, similarity }.
+         */
+        function displayRecommendations(recommendations) {
+            recommendationsList.innerHTML = ''; // Clear previous recommendations
+
+            if (recommendations.length === 0) {
+                recommendationsList.innerHTML = '<li class="text-gray-500">No new recommendations based on your selections. Try selecting more movies!</li>';
+                return;
+            }
+
+            recommendations.forEach(rec => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <span class="recommendation-title">${rec.movie.title}</span>
+                    <span class="recommendation-genre">(${rec.movie.genres.join(', ')}) - Score: ${rec.similarity.toFixed(2)}</span>
+                `;
+                recommendationsList.appendChild(listItem);
+            });
+        }
+
+        // Event Listeners
+        recommendButton.addEventListener('click', getRecommendations);
+
+        // Initial render of movies when the page loads
+        document.addEventListener('DOMContentLoaded', renderMovies);
+    </script>
+</body>
+</html>
